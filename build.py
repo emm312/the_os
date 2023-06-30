@@ -25,6 +25,7 @@ VERBOSE=yes
 :theos
 PROTOCOL=limine
 KERNEL_PATH=boot:///the_os.elf
+RESOLUTION=1000x1000
 """
 
 os.system("mkdir build")
@@ -36,8 +37,8 @@ if not os.path.exists("build/limine"):
         
 os.system("gmake -C build/limine")
 
-os.system("cargo b --release")
-os.system("mv ./target/x86_64-unknown-none/release/the_os ./build/the_os.elf")
+os.system("cargo b")
+os.system("mv ./target/x86_64-unknown-none/debug/the_os ./build/the_os.elf")
 
 log_info("preparing ISO")
 
@@ -57,5 +58,5 @@ os.system("xorriso -as mkisofs -b limine-bios-cd.bin \
 os.system("./build/limine/limine bios-install the_os.iso")
 
 os.system("rm -rf build/iso_root")
-
-os.system("qemu-system-x86_64 -M q35 -m 2G -bios build/ovmf-prebuilt/ovmf-x86_64/OVMF.fd -cdrom the_os.iso -boot d")
+log_info("Running the OS")
+os.system("qemu-system-x86_64 -M q35 -m 2G -bios build/ovmf-prebuilt/ovmf-x86_64/OVMF.fd -cdrom the_os.iso -boot d -device isa-debug-exit,iobase=0xf4,iosize=0x04 -serial stdio")

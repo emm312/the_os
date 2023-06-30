@@ -1,43 +1,24 @@
 #![no_std]
 #![no_main]
+#![deny(unsafe_op_in_unsafe_fn)]
 
 use core::panic::PanicInfo;
-
-use the_os::hcf;
-
-use limine::LimineFramebufferRequest;
-
-static FRAMEBUFFER_REQUEST: LimineFramebufferRequest = LimineFramebufferRequest::new(0);
+use the_os::{hcf, println, interrupts::{idt::init_idt, tss::load_gdt}, serial_println};
 
 #[panic_handler]
-fn panic_handler(_info: &PanicInfo) -> ! {
+fn panic_handler(info: &PanicInfo) -> ! {
+    println!("{}", info);
     hcf();
 }
 
 #[no_mangle]
 unsafe extern "C" fn _start() -> ! {
-    // Ensure we got a framebuffer.
-    if let Some(framebuffer_response) = FRAMEBUFFER_REQUEST.get_response().get() {
-        if framebuffer_response.framebuffer_count < 1 {
-            hcf();
-        }
-
-        // Get the first framebuffer's information.
-        let framebuffer = &framebuffer_response.framebuffers()[0];
-
-        for i in 0..100_usize {
-            // Calculate the pixel offset using the framebuffer information we obtained above.
-            // We skip `i` scanlines (pitch is provided in bytes) and add `i * 4` to skip `i` pixels forward.
-            let pixel_offset = i * framebuffer.pitch as usize + i * 4;
-
-            // Write 0xFFFFFFFF to the provided pixel offset to fill it white.
-            // We can safely unwrap the result of `as_ptr()` because the framebuffer address is
-            // guaranteed to be provided by the bootloader.
-            unsafe {
-                *(framebuffer.address.as_ptr().unwrap().offset(pixel_offset as isize) as *mut u32) = 0xFFFFFFFF;
-            }
-        }
-    }
-
+    load_gdt();
+    init_idt();
+    main();
     hcf();
+}
+
+fn main() {
+    
 }

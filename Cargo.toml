@@ -8,3 +8,11 @@ license = "GPLv3"
 
 [dependencies]
 limine = "0.1.10"
+noto-sans-mono-bitmap = "0.2.0"
+spin = "0.9.8"
+uart_16550 = "0.2.18"
+x86_64 = "0.14.10"
+
+[dependencies.lazy_static]
+version = "1.4.0"
+features = ["spin_no_std"]
